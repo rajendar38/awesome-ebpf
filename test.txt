@@ -139,3 +139,27 @@ ENTRYPOINT ["java", "-Dserver.ssl.key-store=${SERVER_SSL_KEY_STORE}", \
                    "-Dserver.ssl.key-store-password=${SERVER_SSL_KEY_STORE_PASSWORD}", \
                    "-Dserver.ssl.key-store-type=${SERVER_SSL_KEY_STORE_TYPE}", \
                    "-jar", "/app/truststore-service.jar"]
+
+
+# Use an official Java runtime as a parent image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the application JAR file into the container
+COPY target/api-client-service.jar /app/api-client-service.jar
+
+# Copy the truststore file into the container (if custom truststore is used)
+COPY truststore.jks /app/truststore.jks
+
+# Expose the application port (if applicable, e.g., for debugging or other endpoints)
+EXPOSE 8080
+
+# Set environment variables for SSL truststore configuration
+ENV JAVA_OPTS="-Djavax.net.ssl.trustStore=/app/truststore.jks \
+               -Djavax.net.ssl.trustStorePassword=your-password"
+
+# Default command to run the JAR file
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/api-client-service.jar"]
+
