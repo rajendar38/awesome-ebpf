@@ -111,3 +111,31 @@ Test Api-Client-Service
 Call the /fetch-truststore endpoint on api-client-service:
 
 curl http://localhost:8081/fetch-truststore
+
+
+
+# Use an official Java runtime as a parent image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the application JAR file into the container
+COPY target/truststore-service.jar /app/truststore-service.jar
+
+# Copy the SSL keystore file into the container
+COPY truststore-service.p12 /app/truststore-service.p12
+
+# Expose the HTTPS port
+EXPOSE 8443
+
+# Set environment variables for the SSL configuration
+ENV SERVER_SSL_KEY_STORE=/app/truststore-service.p12
+ENV SERVER_SSL_KEY_STORE_PASSWORD=your-password
+ENV SERVER_SSL_KEY_STORE_TYPE=PKCS12
+
+# Default command to run the JAR file
+ENTRYPOINT ["java", "-Dserver.ssl.key-store=${SERVER_SSL_KEY_STORE}", \
+                   "-Dserver.ssl.key-store-password=${SERVER_SSL_KEY_STORE_PASSWORD}", \
+                   "-Dserver.ssl.key-store-type=${SERVER_SSL_KEY_STORE_TYPE}", \
+                   "-jar", "/app/truststore-service.jar"]
