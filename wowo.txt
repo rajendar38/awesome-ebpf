@@ -1,0 +1,93 @@
+Steps to Modify the Client Service
+1. Ensure Truststore is Configured
+
+The client service must have a truststore containing the public certificate of the Truststore-Service (or the CA that issued the certificate).
+
+Obtain the Certificate: Export the public certificate of the Truststore-Service:
+openssl s_client -showcerts -connect <truststore-service-url>:8443 </dev/null 2>/dev/null | openssl x509 -outform PEM > truststore-service.crt
+Replace <truststore-service-url> with the actual domain or IP of the Truststore-Service.
+Create a Truststore: Add the certificate to a truststore (e.g., truststore.jks):
+keytool -import -alias truststore-service \
+  -file truststore-service.crt \
+  -keystore truststore.jks \
+  -storepass your-password
+2. Configure the Client Service
+
+Update the Api-Client-Service to use the truststore:
+
+Add Truststore Properties in application.properties:
+# Truststore Configuration
+javax.net.ssl.trustStore=classpath:truststore.jks
+javax.net.ssl.trustStorePassword=your-password
+Spring RestTemplate Bean Configuration (if using RestTemplate):
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+import javax.net.ssl.SSLContext;
+
+@Configuration
+public class RestTemplateConfig {
+
+    @Bean
+    public RestTemplate restTemplate() throws Exception {
+        // Load the truststore
+        SSLContext sslContext = SSLContextBuilder
+                .create()
+                .loadTrustMaterial(new java.io.File("src/main/resources/truststore.jks"), "your-password".toCharArray(), new TrustSelfSignedStrategy())
+                .build();
+
+        // Create an HttpClient with the SSL context
+        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(socketFactory).build();
+
+        // Return a RestTemplate with the configured HttpClient
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        return new RestTemplate(factory);
+    }
+}
+Using RestTemplate to Call the HTTPS Endpoint:
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class TruststoreServiceClient {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public String callTruststoreService() {
+        String url = "https://truststore-service:8443/api/endpoint"; // Replace with the actual endpoint
+        return restTemplate.getForObject(url, String.class);
+    }
+}
+3. Build and Deploy
+
+Build the Client Service: Ensure the truststore file (truststore.jks) is included in the build:
+Place the truststore.jks in src/main/resources.
+Dockerize the Client Service: Update the Dockerfile to copy the truststore file:
+COPY truststore.jks /app/truststore.jks
+Pass JVM arguments if not configured in application.properties:
+ENTRYPOINT ["java", "-Djavax.net.ssl.trustStore=/app/truststore.jks", \
+            "-Djavax.net.ssl.trustStorePassword=your-password", \
+            "-jar", "/app/api-client-service.jar"]
+Run the Dockerized Client Service:
+docker run -p 8080:8080 api-client-service:latest
+4. Test the HTTPS Call
+
+Use curl or Postman to call the Api-Client-Service endpoint and ensure it successfully communicates with the HTTPS-enabled Truststore-Service.
+Let me know if you'd like further clarification or additional details about this setup!
+
+
+
+
+
+
