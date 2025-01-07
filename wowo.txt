@@ -84,10 +84,3 @@ docker run -p 8080:8080 api-client-service:latest
 4. Test the HTTPS Call
 
 Use curl or Postman to call the Api-Client-Service endpoint and ensure it successfully communicates with the HTTPS-enabled Truststore-Service.
-Let me know if you'd like further clarification or additional details about this setup!
-
-
-
-
-
-
