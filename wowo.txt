@@ -12,3 +12,13 @@ keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -storetype PKCS12 -k
 
 
 keytool -list -keystore server.p12 -storetype PKCS12
+
+
+keytool -genkeypair -alias truststore-service -keyalg RSA -keysize 2048 -storetype PKCS12 \
+  -keystore truststore-service.p12 -validity 365
+
+
+keytool -export -alias truststore-service -file truststore-service.crt -keystore truststore-service.p12
+
+
+keytool -import -alias truststore-service -file truststore-service.crt -keystore client-truststore.jks -storepass changeit
