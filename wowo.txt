@@ -123,3 +123,29 @@ public class StatusController {
         return statusService.fetchStatus();
     }
 }
+---------
+package com.example.webclienthello;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class WebClientHelloApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(WebClientHelloApplication.class, args);
+    }
+}
+-------
+package com.example.webclienthello.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class WebClientConfig {
+    @Bean
+    public WebClient webClient(WebClient.Builder builder) {
+        return builder.build();
+    }
+}
