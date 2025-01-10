@@ -1,24 +1,125 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>webclient-hello</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>WebClient Hello</name>
+    <description>Spring Boot application with WebClient</description>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.1.2</version> <!-- Replace with the latest Spring Boot version -->
+        <relativePath /> <!-- lookup parent from repository -->
+    </parent>
 
-keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore server.p12 -validity 365
+    <properties>
+        <java.version>17</java.version> <!-- Set your Java version -->
+    </properties>
+
+    <dependencies>
+        <!-- Spring Web for WebClient -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot DevTools (optional for development) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Lombok (optional, simplifies boilerplate code) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Testing Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
 
 
-Export the server's certificate from the keystore and import it into the client's truststore:
+package com.example.webclienthello.service;
 
-keytool -export -alias server -file server.crt -keystore server.p12
-keytool -import -trustcacerts -alias server -file server.crt -keystore client-truststore.jks
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Service
+public class StatusService {
+
+    private final WebClient webClient;
+
+    public StatusService(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    public String fetchStatus() {
+        // For simplicity, return a static "Status" message here.
+        // Replace this logic to fetch the status from an external API using WebClient.
+        return "Service is up and running!";
+    }
+}
 
 
-keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore server.p12 -validity 365
+package com.example.webclienthello.controller;
 
+import com.example.webclienthello.service.StatusService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-keytool -list -keystore server.p12 -storetype PKCS12
+@RestController
+public class StatusController {
 
+    private final StatusService statusService;
 
-keytool -genkeypair -alias truststore-service -keyalg RSA -keysize 2048 -storetype PKCS12 \
-  -keystore truststore-service.p12 -validity 365
+    public StatusController(StatusService statusService) {
+        this.statusService = statusService;
+    }
 
+    @GetMapping("/status")
+    public String getStatus() {
+        return statusService.fetchStatus();
+    }
+}
 
-keytool -export -alias truststore-service -file truststore-service.crt -keystore truststore-service.p12
+package com.example.webclienthello.controller;
 
+import com.example.webclienthello.service.StatusService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-keytool -import -alias truststore-service -file truststore-service.crt -keystore client-truststore.jks -storepass changeit
+@RestController
+public class StatusController {
+
+    private final StatusService statusService;
+
+    public StatusController(StatusService statusService) {
+        this.statusService = statusService;
+    }
+
+    @GetMapping("/status")
+    public String getStatus() {
+        return statusService.fetchStatus();
+    }
+}
