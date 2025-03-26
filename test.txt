@@ -1,0 +1,12 @@
+Instead of using the Rancher CLI, you can call the Rancher API with curl.
+login to rancher using curl and the api to get a bearer token
+bearer_token = curl -s "<rancher_url>/v3-public/localProviders/local?action=login" \
+  -H "Content-Type: application/json" \
+  --data '{"username":"<username>","password":"<password>"}'
+use the bearer token to get your cluster id
+cluster_id = curl -H 'Authorization: Bearer <bearer_token>' <rancher_url>/v3/clusters?name=$<cluster_name> | jq -r '.data[0].id'
+use the bearer token + cluster id to get the kubeconfig
+"curl -X POST -H 'Authorization: Bearer <bearer_token>' <rancher_url>/v3/clusters/<cluster_id>?action=generateKubeconfig | jq -r .config > cluster-kube-config.yml
+use kubeconfig to interact with your cluster
+helm install --kubeconfig cluster-kube-config.yml
+syntax might not be correct, but you can fiddle around.  You will need jq to parse json response to extract data from the curl calls. This eliminates the dependency on rancher cli
